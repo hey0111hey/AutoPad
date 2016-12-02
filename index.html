@@ -1,0 +1,198 @@
+<!DOCTYPE>
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <BODY topmargin="0" leftmargin="0" marginwidth="0" marginheight="0">
+      <meta http-equiv="content-type" content="text/html; charset=utf-8">
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+      <title>ゲーム</title>
+      <style>
+body{
+  background: #e0e0e0;
+  text-align: center;
+  font-size: 16px;
+  color: #000;
+  font-family:Arial,sans-serif;
+}
+.btn{
+  display: inline-block;
+  margin: 10px auto;
+  width:  auto;
+  padding:3px;
+  border-radius: 5px;
+  background: #00aaff;
+  box-shadow: 0 4px 0 #0088ff;
+  color: #fff;
+  cursor: pointer;
+}
+.btn:hover{
+  opacity: 0.8;
+}
+.obtn{
+  width:  auto;
+  padding:3px;
+  border-radius: 5px;
+  background: #00aaff;
+  box-shadow: 0 4px 0 #0088ff;
+  color: #fff;
+  cursor: pointer;
+}
+.mode{
+  display: inline-block;
+  margin: 10px auto;
+  width:  auto;
+  padding:10px;
+  border-radius: 5px;
+  background: #00aaff;
+  box-shadow: 0 4px 0 #0088ff;
+  color: #FFF;
+  cursor: pointer;
+  font-weight: 600;
+}
+.mode:hover{
+  opacity: 0.8;
+}
+.selected{
+  color: #000;
+  background: #FFD700;
+  box-shadow: 0 4px 0 #FFA500;
+}
+.selected:hover{
+  opacity: 0.8;
+}
+.btn + .btn{
+  margin-left: 5px;
+}
+#oti{
+  display: inline-block;
+  margin: 10px auto;
+  width:  auto;
+  padding:3px;
+  border-radius: 5px;
+  background: #aaaaaa;
+  box-shadow: 0 4px 0 #666666;
+}
+#oti>.mode{
+  padding:9px;
+}
+.mode + .btn{
+  margin-left: 5px;
+}
+.mode + .mode{
+  margin-left: 5px;
+}
+#oti>.btn{
+  background: #555;
+    box-shadow: 0 4px 0 #222;
+}
+#oti>.btn.use{
+  background: #FFD700;
+  box-shadow: 0 4px 0 #FFA500;
+}
+      </style>
+      <script src = "main.js"></script>
+  </head>
+  <body>
+    <canvas id="maincanvas"></canvas>
+    <div id="result">
+      <div></div>
+      <a href="https:google.com">共有可能なURLを開く</a>
+      <br>
+    <a href="https://twitter.com/intent/tweet?button_hashtag=test_theory_maker&text=test" class="twitter-hashtag-button" data-lang="ja">Tweet #test_theory_maker</a> <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+    </div>
+
+    <div id="drops">
+      <div id="R" class="btn selected" onclick="set_color('R')">
+        <img src="assets/R.gif" alt='blue button' height=25 width=25>
+      </div>
+      <div id="G" class="btn" onclick="set_color('G')">
+        <img src="assets/G.gif" alt='blue button' height=25 width=25>
+      </div>
+      <div id="B" class="btn" onclick="set_color('B')">
+        <img src="assets/B.gif" alt='blue button' height=25 width=25>
+      </div>
+      <div id="Y" class="btn" onclick="set_color('Y')">
+        <img src="assets/Y.gif" alt='blue button' height=25 width=25>
+      </div>
+      <div id="P" class="btn" onclick="set_color('P')">
+        <img src="assets/P.gif" alt='blue button' height=25 width=25>
+      </div>
+      <div id="H" class="btn" onclick="set_color('H')">
+        <img src="assets/H.gif" alt='blue button' height=25 width=25>
+      </div>
+      <div id="J" class="btn" onclick="set_color('J')">
+        <img src="assets/J.gif" alt='blue button' height=25 width=25>
+      </div>
+      <div id="D" class="btn" onclick="set_color('D')">
+        <img src="assets/D.gif" alt='blue button' height=25 width=25>
+      </div>
+    </div>
+    <div id="modes">
+      <div id='pzl' class="mode selected" onclick="set_mode('pzl')">パズルモード</div>
+      <div id='ctw'  class="mode" onclick="set_mode('ctw')">CTWモード</div>
+      <div id='orbs' class="mode" onclick="set_mode('orbs')">ドロップを配置</div>
+    </div>
+
+    <div id="oti" class="" >
+      <div id="obtn" class="obtn" onclick="isUseOtikon()">
+        落ちコン：無し
+      </div>
+      <div id="R" class="btn use" onclick="onRadioButtonChange(0)">
+        <img src="assets/R.gif" alt='blue button' height=25 width=25>
+      </div>
+      <div id="G" class="btn use" onclick="onRadioButtonChange(1)">
+        <img src="assets/G.gif" alt='blue button' height=25 width=25>
+      </div>
+      <div id="B" class="btn use" onclick="onRadioButtonChange(2)">
+        <img src="assets/B.gif" alt='blue button' height=25 width=25>
+      </div>
+      <div id="Y" class="btn use" onclick="onRadioButtonChange(3)">
+        <img src="assets/Y.gif" alt='blue button' height=25 width=25>
+      </div>
+      <div id="P" class="btn use" onclick="onRadioButtonChange(4)">
+        <img src="assets/P.gif" alt='blue button' height=25 width=25>
+      </div>
+      <div id="H" class="btn use" onclick="onRadioButtonChange(5)">
+        <img src="assets/H.gif" alt='blue button' height=25 width=25>
+      </div>
+      <div id="J" class="btn" onclick="onRadioButtonChange(6)">
+        <img src="assets/J.gif" alt='blue button' height=25 width=25>
+      </div>
+      <div id="D" class="btn" onclick="onRadioButtonChange(7)">
+        <img src="assets/D.gif" alt='blue button' height=25 width=25>
+      </div>
+    </div>
+    <br>
+
+    <!--
+    <input type="button" value="puzzle on" onclick="board.execute()">
+    <input type="button" value="くらえｯ！" onclick="unko_no_umi()">
+    <br>
+    <input type="button" value="step by step" onclick="stepbystep()">
+    <input type="button" value="step by step without filling" onclick="stepbystep_without_otikon()">
+    <br>
+    <input type="button" value="erace!" onclick="erace_button()">
+    <input type="button" value="fall!" onclick="board.falling()">
+    <input type="button" value="fill random!" onclick="board.fill_random(otirand)">
+    <br>
+    履歴機能 : 最新100件まで<br>
+    <form name="history_button">
+      <input type="button" value="<<" onclick="onHistoryButton(0)">
+      <input type="button" value="<" onclick="onHistoryButton(1)">
+      <input type="button" value=">" onclick="onHistoryButton(2)">
+      <input type="button" value=">>" onclick="onHistoryButton(3)">
+    </form>
+    <input id="kepri" name="kepri" type="checkbox" onchange="change_mode_Kepri()" />
+    <label for="kepri">ケプリモード</label><br/>
+    <form name="dict">
+      縦: <input type="text" name="height"  value="5"> <br>
+      横: <input type="text" name="width" value="6"> <br>
+
+      <input type="button" value="変更" onclick="newBoard()">
+    </form>
+    -->
+  </body>
+</html>
+
+
