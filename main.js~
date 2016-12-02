@@ -16,32 +16,23 @@ var mouseY = 0;
 var cur_mode;
 var select_color ="R";
 var button_l=false;
-var isOtikon = false;
 var icolor =['R','G','B','Y','P','H','J','D'];
-var otirand = [true,true,true,true,true,true,false,false];
+var otirand = [true,true,true,true,true,true,true,true];
 var step_count=0;
 var isKepri = false;
 var boardURL = 0;
-var tmpcombo = -1;
-var boardcells;
-var inputHand;
-var moveTime=100;//ms
-var auto_mode;
 
 function init(){
   canvas = document.getElementById('maincanvas');
-  $('#drops').hide();
-  $('#oti .btn').each(function(i,elem){$(elem).hide();});
-  $('#result').hide();
 
   if(document.addEventListener){
 
     // マウスボタンを押すと実行されるイベント
-    document.addEventListener("mousedown" ,MouseClickEvent);
+    document.addEventListener("mousedown" , MouseEventFunc);
     // マウスカーソルを移動するたびに実行されるイベント
     document.addEventListener("mousemove" , MouseEventFunc);
     // マウスボタンを離すと実行されるイベント
-    document.addEventListener("mouseup" , MouseUpEvent);
+    document.addEventListener("mouseup" , MouseEventFunc);
     // コンテキストメニューが表示される直前に実行されるイベント
     document.addEventListener("contextmenu" , MouseEventFunc);
 
@@ -53,24 +44,19 @@ function init(){
     // マウスカーソルを移動するたびに実行されるイベント
     canvas.attachEvent("onmousemove" , MouseEventFunc);
     // マウスボタンを離すと実行されるイベント
-    canvas.attachEvent("onmouseup" ,MouseUpEvent );
+    canvas.attachEvent("onmouseup" , MouseEventFunc);
     // コンテキストメニューが表示される直前に実行されるイベント
     canvas.attachEvent("oncontextmenu" , MouseEventFunc);
 
   }else{
     console.log("event listener is not found");
   }
-  console.log(canvas.getBoundingClientRect().left);
-  console.log(canvas.getBoundingClientRect().top);
-  console.log(canvas.getBoundingClientRect().right);
-  console.log(canvas.getBoundingClientRect().bottom);
   ctx = canvas.getContext('2d');
-  cur_mode = 'pzl';
-  console.log();
-  margin_width =canvas.getBoundingClientRect().left;
-  margin_height=canvas.getBoundingClientRect().top; 
-  canvas.width = board.width*orb_size;
-  canvas.height=  board.height*orb_size;
+  cur_mode = 'orbs'
+  margin_width =margin_width  - canvas.style.margin;
+  margin_height=margin_height - canvas.style.margin;
+  canvas.width = margin_width*2 + board.width*orb_size;
+  canvas.height= margin_height*2 + board.height*orb_size;
 
   var arg = new Object;
   var pair=location.search.substring(1).split('&');
@@ -79,18 +65,13 @@ function init(){
       arg[kv[0]]=kv[1];
   }
   
-  if(arg.board){
+  if( arg.baord != undefined){
     boardURL = arg.board;
     console.log(boardURL);
   }
   if(arg.Kepri){
     isKepri = arg.Kepri;
     console.log(isKepri);
-  }
-  if(arg.move){
-    cur_mode='auto';
-    auto_mode='init';
-    inputHand = arg.move;
   }
   board.init();
   result.init();
@@ -103,75 +84,27 @@ function init(){
   })
 }
 
-var start = new Date;
+
 function update(){
   requestAnimationFrame(update);
   board.moving(cur_mode);
   if(cur_mode== 'orbs'){
     board.change_color(select_color);
   }
-  if(cur_mode=='end'){
-    $('#modes .mode').each(function(i,elem){$(elem).removeClass('selected')});
-  }
-  if(cur_mode=='auto'){
-    if(auto_mode=='init'){
-      var x =inputHand.charAt(0);
-      inputHand = inputHand.substr(1);
-      var y =inputHand.charAt(0);
-      inputHand = inputHand.substr(2);
-      mouseX=margin_width + (x)*orb_size+orb_size*0.5;
-      mouseY=margin_height+ (y)*orb_size+orb_size*0.5;
-      board.touchX=x-0;
-      board.touchY=y-0;
-      auto_mode='move'
-    }
-    board.isTouch=true;
-  }
   render();
   render_orbs(cur_mode);
-  if(cur_mode=='inLoop'){
-    tmpcombo = result.combo;
-    cur_mode = 'none';
-    board.elace(isKepri,function(){cur_mode='movie_elace';});
-    start = new Date;
-  }
-  if(cur_mode=='movie_fall'){
-    var next  = new Date;
-    if(100<= next.getTime() - start.getTime()){
-      board.falling();
-      if(isOtikon)board.fill_random(otirand);
-      if(tmpcombo!=result.combo){
-        cur_mode='inLoop';
-      }else{
-        cur_mode='end';
-        console.log(result.hand);
-        $('#result div').text((result.hand.length-3)+'手で'+result.combo+'コンボしました。');
-        $('#result a').attr("href","https://hey0111hey.github.io/AutoPad/?board="+boardURL
-            +"&move="+result.hand);
-        $('#result').toggle('show');
-      }
-    }
-  }
-  if(cur_mode=='movie_elace'){
-    var next  = new Date;
-    if(100<= next.getTime() - start.getTime()){
-      board.elace_animation(result,function(){cur_mode='movie_fall';});
-      start = new Date;
-    }
-  }
-
 }
 function render_orbs(mode){
 
   for(var height = 0; height < board.height ; height++){
     for(var width = 0; width < board.width ; width++){
-      var x =width*orb_size ;
-      var y =height*orb_size;
+      var x =width*orb_size + margin_width;
+      var y =height*orb_size + margin_height;
       // ドロップを表示する
       // つかんでいるドロップはマウスに追従させる
       if(board.cell[width][height]!== 'vanished'){
-        if(board.isTouch && board.touchX == width && board.touchY == height && (mode == 'normal'|| mode =='ctw'|| mode == 'pzl'||cur_mode =='auto')){
-          ctx.drawImage(Asset.images[board.cell[width][height]],mouseX-margin_width-30,mouseY-30);
+        if(board.isTouch && board.touchX == width && board.touchY == height && (mode == 'normal'|| mode =='ctw')){
+          ctx.drawImage(Asset.images[board.cell[width][height]],mouseX-40,mouseY-40);
         }else{
           ctx.drawImage(Asset.images[board.cell[width][height]],x,y);
         }
@@ -189,8 +122,8 @@ function render(){
 
   for(var height = 0; height < board.height ; height++){
     for(var width = 0; width < board.width ; width++){
-      var x =width*orb_size ;
-      var y =height*orb_size;
+      var x =width*orb_size + margin_width;
+      var y =height*orb_size + margin_height;
       //背景を表示
       if((height+width)%2 == 0){
          ctx.drawImage(Asset.images['B1'],x,y);
@@ -270,36 +203,15 @@ function MouseEventFunc(e){
       //座標を取得
       mouseX = e.clientX;
       mouseY = e.clientY;
-    }else{
+          }else{
       board.isTouch = false;
       board.isBefore= false;
     }
+
+
   }
 }
 
-function MouseClickEvent(e){
-  MouseEventFunc(e);
-  if(    mouseX>= margin_width 
-      && mouseX <= margin_width + board.width*orb_size
-      && mouseY>= margin_height
-      && mouseY <= margin_height + board.height*orb_size
-    ){
-    if(cur_mode=='pzl'){
-      result.hand='';
-      boardURL=board.decode();
-    }
-  }
-}
-
-function MouseUpEvent(e){
-  if(    mouseX>= margin_width 
-      && mouseX <= margin_width + board.width*orb_size
-      && mouseY>= margin_height
-      && mouseY <= margin_height + board.height*orb_size
-    ){
-    if(cur_mode=='pzl')board.execute();
-  }
-}
 
 
 //パズドラのボードを作成
@@ -317,7 +229,7 @@ board.beforeY = 0;
 board.init = function(){
   board.height = 5;
   board.width = 6;
-  // cellに2次元配列を作成
+  // cellに2次元配列を作成し水ドロップを追加する
   board.cell = new Array();
   for(var width = 0; width < board.width ; width++){
     board.cell[width] = new Array();
@@ -331,16 +243,6 @@ board.init = function(){
   console.log("board initialize is finished .")
 }
 
-board.decode = function(){
-  var urlb='';
-  for (var height = 0; height < board.height; ++height) {
-    for (var width = 0; width < board.width; ++width) {
-      urlb=urlb+icolor.indexOf(board.cell[width][height]);
-    }
-  }
-  return urlb;
-}
-
 // 境界を跨いだらドロップを入れ替え
 board.moving = function(mode){
   //動きます
@@ -351,7 +253,6 @@ board.moving = function(mode){
       && button_l
     ){
 
-
     board.isBefore=board.isTouch;
     board.beforeX = board.touchX ;
     board.beforeY = board.touchY ;
@@ -359,23 +260,17 @@ board.moving = function(mode){
     board.isTouch = true;
     board.touchX = Math.floor( (mouseX-margin_width)/orb_size);
     board.touchY = Math.floor( (mouseY-margin_height)/orb_size);
-    if(result.hand.length==0){
-      result.hand+=board.touchX;
-      result.hand+=board.touchY;
-      result.hand+=',';
-    }
     console.log("clicked! ("+ board.touchX+","+board.touchY+")");
   }else{
     board.isTouch = false;
     board.isBefore= false;
   }
 
-  if(board.isBefore && board.isTouch && (mode == 'normal' || mode == 'ctw' | mode == 'pzl')){
+  if(board.isBefore && board.isTouch && (mode == 'normal' || mode == 'ctw')){
     if(board.touchX !== board.beforeX || board.touchY !== board.beforeY ){
       var tmp = board.cell[board.touchX][board.touchY];
       board.cell[board.touchX][board.touchY]=board.cell[board.beforeX][board.beforeY];
       board.cell[board.beforeX][board.beforeY]=tmp;
-      result.hand = result.hand+((board.touchX-board.beforeX)+(board.touchY-board.beforeY)*3+4);
     }
   }
 }
@@ -398,8 +293,6 @@ result.dell = {};
 result.plus ={};
 result.line= {};
 result.length = {};
-result.buf = {};
-result.hand ='';
 
 //コンボ数、消えたドロップの数、手数を初期化
 result.init = function(){
@@ -417,49 +310,20 @@ result.init = function(){
     result.line[icolor[i]] = 0;
   }
   result.length = 0;
-  result.buf = new Array();
-}
-
-board.elace_animation= function(result,callback){
-  var _count = 0;
-  var _onLoad = function(){
-    _count++;
-    if(_count>=30){
-      result.buf.shift();
-      if(result.buf.length==0){
-        callback();
-        return ;
-      }
-    }
-  };
-  if(result.buf.length==0){
-    callback();
-    return ;
-  }
-  console.log('called elace_animation1');
-  for (var i = 0; i < result.buf.length; ++i) {
-    console.log(result.buf[i]);
-  }
-  console.log('called elace_animation2');
-  for (var i = 0; i < board.cell.length; ++i) {
-    for (var j = 0; j < board.cell[i].length; ++j) {
-      if(result.buf[0][i+1][j+1]!='vanished'){
-        board.cell[i][j]='vanished';
-      }
-      _onLoad();
-    }
-  }
 }
 // 計算部分、board.cellとresultを更新
 board.execute= function(){
   result.init();
-  console.log(result.buf);
-  cur_mode='inLoop';
-  tmpcombo = -1;
+  var tmp = -1;
+    while(tmp !== result.combo){
+      tmp = result.combo;
+      board.elace(isKepri,result);
+      board.falling();
+      board.fill_random(otirand);
+    }
 }
 
 board.fill_random = function(otirand){
-  console.log('called fill_random');
 
   var index;
   var flag=true;
@@ -482,7 +346,6 @@ board.fill_random = function(otirand){
 }
 
 board.falling = function(){
-  console.log('called falling');
   var count =board.height-1;
   for(var width = 0; width < board.width ; width++){
     count =board.height-1;
@@ -499,8 +362,8 @@ board.falling = function(){
   history.push(board.cell);
 }
 
-board.elace =function(isKepri,callback){
-  console.log('called board.elace');
+board.elace =function(isKepri, result){
+  
   //番兵を用意した配列を生成する関数を用意
   var _make_Array = function(){
     var array = [];
@@ -569,49 +432,12 @@ board.elace =function(isKepri,callback){
 
   erace_copy = _copy_Array(erace_state);
 
-  var loadCount = 0;
-  var _loadCount = 0;
-
-  var _onLoad = function(){
-    _loadCount++;
-    if(_loadCount>=29){
-      history.push(board.cell);
-      console.log(result.buf);
-      console.log('callback is called2');
-      callback();
-    }
-  }
-
-  var onLoad = function(){
-    loadCount++;
-    if (loadCount >= board.width*board.height) {
-      console.log('callback is called1');
-      history.push(board.cell);
-      for (var i = 0; i < result.buf.length; ++i) {
-        console.log(result.buf[i]);
-      }
-      console.log('callback is called2');
-      callback();
-      //for (var i = 0; i < result.buf.length; ++i) {
-      //  if(result.buf[i].length==0){
-      //    result.buf.splice(i,1);
-      //    i--;
-      //  }
-      //  _onLoad();
-      //}
-    }
-
-  }
-
   //一緒に消えるドロップを取得し処理を行う
   for(var countW = 1; countW < board.width +1 ; countW++){
     for(var countH = 1; countH < board.height +1 ; countH++){
       //ブロックスコープの代わり
       (function(countW,countH){
-        if(erace_state[countW][countH]=='vanished'){
-          onLoad();
-          return 1;
-        }
+        if(erace_state[countW][countH]=='vanished')return 1;
         var tmp = _make_Array();
         var before ;
         var dirX = [1,-1,0,0];
@@ -647,7 +473,6 @@ board.elace =function(isKepri,callback){
           }
         }
 
-
         //tmpから情報を取得する
         //ドロップの数を数える。
         //列消しがあるかどうか
@@ -677,14 +502,15 @@ board.elace =function(isKepri,callback){
           if(isBufLine) isLine =true;
         }
         if(count !== 5) isPlus = false; 
-        //console.log(count);
+        console.log(count);
         if(isKepri&&count<=4){
           // erace_stateからtmpのドロップを消す
           for(var countW = 1; countW < board.width +1 ; countW++){
             for(var countH = 1; countH < board.height +1 ; countH++){
               if(tmp[countW][countH]!=='vanished'){
                 erace_copy[countW][countH] = 'vanished';
-              } }
+              }
+            }
           }
         }else{
           // 結果をresultに記録
@@ -692,42 +518,33 @@ board.elace =function(isKepri,callback){
           result.dell[color].push(count);
           if(isLine) result.line[color] += 1;
           if(isPlus) result.plus[color] += 1;
-          result.buf.push(_copy_Array(tmp));
-          console.log(tmp);
         }
-        onLoad();
-        return tmp
+
       })(countW,countH);
     }
   }
+
+  //boardからコンボで消えたドロップを消去
+  for(var width = 0; width < board.width ; width++){
+    for(var height =0; height<board.height ; height++){
+      if(erace_copy[width+1][height+1]!== 'vanished'){
+        board.cell[width][height] = 'vanished';
+      }
+    }
+  }
+  history.push(board.cell);
   return  0;
 }
 
 //ボタンのクリック数を処理
 function set_mode(mode){
-  if(cur_mode=="end"){
-    $('#result').hide('show');
-  }
   cur_mode=mode;
-  if (mode=="orbs") {
-    $('#drops').show('show');
-  }else{
-    $('#drops').hide('show');
-  }
-  $('.mode').each(function(i,elem){
-    $(elem).removeClass('selected');
-  });
-  $('#'+mode).addClass('selected');
   console.log(cur_mode);
   history.push(board.cell);
 }
 
 function set_color(clr){
-  cur_mode="orbs";
-  $('#drops div').each(function(i,elem){
-    $(elem).removeClass('selected');
-  });
-      $('#drops #'+clr).addClass('selected');
+  cur_mode="orbs"
     select_color = clr;
     history.push(board.cell);
   console.log(select_color);
@@ -779,10 +596,6 @@ function unko_no_umi(){
 
 function onRadioButtonChange(entry){
   otirand[entry]=!otirand[entry];
-  $('#oti .btn').each(function(i,elem){
-    if(otirand[i])$(elem).addClass("use");
-    else $(elem).removeClass("use");
-  });
   console.log(otirand);
 }
 
@@ -792,7 +605,7 @@ function stepbystep(){
   }else if(step_count%3 ==1){
     board.falling();
   }else{
-   if(isOtikon)board.fill_random(otirand);
+    board.fill_random(otirand);
   }
   step_count+=1;
 }
@@ -887,7 +700,7 @@ history.push = function(src){
   history.data.push(copy_Array(src));
   history._checksize();
   history.cur=history.maxid;
-  //console.log(history);
+  console.log(history);
 }
 //最新の行動を削除
 history.pop_back = function(){
@@ -937,19 +750,4 @@ function onHistoryButton(nButton){
     history.end(board.cell);
   }
   console.log(history);
-}
-function isUseOtikon(){
-  isOtikon = !isOtikon;
-  if(isOtikon){
-    $('#obtn').text("落ちコン：選択してください")
-      .addClass("selected");
-
-  }else{
-    $('#obtn').text("落ちコン：無し")
-      .removeClass("selected");
-  }
-  $('#oti .btn').each(function(i,elem){
-    $(elem).toggle('show');
-  });
-
 }

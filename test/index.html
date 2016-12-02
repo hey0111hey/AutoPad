@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>test</title>
+  </head>
+  <body>
+  <script>
+var hoge = function(i){
+  return [[1+i,2+i,3+i],i];
+};
+var ary;
+
+(function(){
+  ary=  new Array();
+  for(var i=0;i<5;i++){
+ary.push((function(i){
+  var a = hoge(i);
+  return a;
+})(i));
+}
+})();
+console.log(ary);
+  </script>
+  </body>
+</html>
